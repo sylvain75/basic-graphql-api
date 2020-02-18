@@ -2,6 +2,10 @@
   "name": "graphql-api-movie",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "license": "MIT",
   "dependencies": {
     "apollo-server": "^2.10.1",
