@@ -31,19 +31,37 @@ const typeDefs = gql`
     movie(id: ID): Movie
   }
 `
+const actors = [{
+  id: 'liukang',
+  name: 'Liu Kang',
+}];
 
 const movies = [
   {
     id: 'one',
     title: 'five deadly venoms',
     releaseDate: new Date("10-12-1983"),
-    rating: 5
+    rating: 5,
+    actors: [
+      {
+      id: 'jet',
+      name: 'Jet Lee',
+      },
+      {
+        id: 'bruce',
+        name: 'lee'
+      }
+    ]
   },
   {
     id: 'two',
     title: '36 chamber',
     releaseDate: new Date("09-13-1985"),
-    rating: 5
+    rating: 5,
+    actors: [{
+      id: 'liukang',
+      name: 'Liu Kang',
+    }]
   }
 ];
 
@@ -55,6 +73,17 @@ const resolvers = {
     movie: (obj, { id }, context, info) => {
       const movie = movies.find((movie) => movie.id === id)
       return movie;
+    },
+  },
+
+  Movie: {
+    actors: (obj, arg, context, info) => {
+      // DB call
+      const actorsIds = obj.actors.map(actor => actor.id);
+      const filteredActors = actors.filter(actor => {
+        return actorsIds.includes(actor.id);
+      });
+      return filteredActors;
     }
   },
   Date: new GraphQLScalarType({
