@@ -30,6 +30,9 @@ const typeDefs = gql`
     movies: [Movie]
     movie(id: ID): Movie
   }
+  type Mutation {
+    addMovie(id: ID, title: String, releaseDate: Date): [Movie]
+  }
 `
 const actors = [{
   id: 'liukang',
@@ -76,7 +79,10 @@ const resolvers = {
     },
   },
 
+
+
   Movie: {
+    // actors is a nested entities through Movie
     actors: (obj, arg, context, info) => {
       // DB call
       const actorsIds = obj.actors.map(actor => actor.id);
@@ -86,6 +92,24 @@ const resolvers = {
       return filteredActors;
     }
   },
+
+  Mutation: {
+    addMovie: (obj, { id, title, releaseDate }, context) => {
+      // do mutation and/or DB stuff
+      const newMoviesList = [
+        ...movies,
+        // new movie data
+        {
+          id,
+          title,
+          releaseDate,
+        }
+      ];
+      // Return dat as expected in the schema
+      return newMoviesList;
+    }
+  },
+
   Date: new GraphQLScalarType({
     name: 'Date',
     description: "It's a date",
