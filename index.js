@@ -30,8 +30,23 @@ const typeDefs = gql`
     movies: [Movie]
     movie(id: ID): Movie
   }
+
+  input ActorInput {
+    id: ID
+    name: String
+  }
+
+  input MovieInput {
+    id: ID
+    title: String
+    releaseDate: Date
+    rating: Int
+    status: Status
+    actors: [ActorInput]
+  }
+
   type Mutation {
-    addMovie(id: ID, title: String, releaseDate: Date): [Movie]
+    addMovie(movie: MovieInput): [Movie]
   }
 `
 const actors = [{
@@ -94,16 +109,12 @@ const resolvers = {
   },
 
   Mutation: {
-    addMovie: (obj, { id, title, releaseDate }, context) => {
+    addMovie: (obj, { movie }, context) => {
       // do mutation and/or DB stuff
       const newMoviesList = [
         ...movies,
         // new movie data
-        {
-          id,
-          title,
-          releaseDate,
-        }
+        movie
       ];
       // Return dat as expected in the schema
       return newMoviesList;
