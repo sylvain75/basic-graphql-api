@@ -143,7 +143,16 @@ const resolvers = {
   })
 }
 
-const server = new ApolloServer({ typeDefs, resolvers, introspection: true, playground: true });
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  introspection: true,
+  playground: true,
+  context: ({ req }) => {
+    // Could pull authentication userId and return it to be accessible into any queries mutation
+    return {}
+  }
+});
 
 server.listen({
   port: process.env.PORT || 4000
