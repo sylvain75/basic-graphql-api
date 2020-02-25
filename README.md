@@ -36,3 +36,14 @@ query movies {
   }
 }
 ```
+
+### Database Connection
+sandbox mongoDB +
+https://mongoosejs.com/docs/
+
+mongodb+srv://sylvain:<password>@cluster0-iyjij.mongodb.net/test?retryWrites=true&w=majority
+
+-- Create an user with write/read access
+-- Make sure your ip is whitelisted from the Network Access tab.
+Get your ip address:
+  `$ curl ifconfig.me`

@@ -1,6 +1,21 @@
+require('dotenv').config()
 const { ApolloServer, gql } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { Kind } =require('graphql/language');
+const mongoose = require('mongoose');
+console.log('process.env???', process.env.DB_USER);
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0-iyjij.mongodb.net/test?retryWrites=true&w=majority`, {useNewUrlParser: true});
+const db = mongoose.connection;
+
+const movieSchema = new mongoose.Schema({
+  title: String,
+  releaseDate: Date,
+  rating: Number,
+  status: String,
+  actorIds: [String]
+});
+
+const MovieModel = mongoose.model('MovieModel', movieSchema);
 
 const typeDefs = gql`
   scalar Date
@@ -85,12 +100,23 @@ const movies = [
 
 const resolvers = {
   Query: {
-    movies: () => {
-      return movies;
+    movies: async() => {
+      try {
+        const allMovies = await MovieModel.find();
+        return allMovies;
+      } catch (error) {
+        console.log('error???', error);
+        return [];
+      }
     },
-    movie: (obj, { id }, context, info) => {
-      const movie = movies.find((movie) => movie.id === id)
-      return movie;
+    movie: async (obj, { id }, context, info) => {
+      try {
+        const foundMovie = await MovieModel.findById(id);
+        return foundMovie;
+      } catch (error) {
+        console.log('error???', error);
+        return {};
+      }
     },
   },
 
@@ -109,15 +135,14 @@ const resolvers = {
   },
 
   Mutation: {
-    addMovie: (obj, { movie }, context) => {
-      // do mutation and/or DB stuff
-      const newMoviesList = [
-        ...movies,
-        // new movie data
-        movie
-      ];
+    addMovie: async(obj, { movie }, context) => {
+      const newMovie = await MovieModel.create({
+        ...movie
+      })
+      const allMovies = await MovieModel.find();
+      return allMovies;
       // Return dat as expected in the schema
-      return newMoviesList;
+      return [newMovie];
     }
   },
 
@@ -154,8 +179,12 @@ const server = new ApolloServer({
   }
 });
 
-server.listen({
-  port: process.env.PORT || 4000
-}).then(({ url }) => {
-  console.log(`Server started at ${url}`);
-})
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', () => {
+  console.log('✅ DB connected ✅');
+  server.listen({
+    port: process.env.PORT || 4000
+  }).then(({ url }) => {
+    console.log(`Server started at ${url}`);
+  })
+});
