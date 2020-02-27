@@ -1,5 +1,5 @@
 require('dotenv').config()
-const { ApolloServer, gql } = require('apollo-server');
+const { ApolloServer, gql, PubSub } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { Kind } =require('graphql/language');
 const mongoose = require('mongoose');
@@ -63,42 +63,55 @@ const typeDefs = gql`
   type Mutation {
     addMovie(movie: MovieInput): [Movie]
   }
-`
-const actors = [{
-  id: 'liukang',
-  name: 'Liu Kang',
-}];
 
-const movies = [
-  {
-    id: 'one',
-    title: 'five deadly venoms',
-    releaseDate: new Date("10-12-1983"),
-    rating: 5,
-    actors: [
-      {
-      id: 'jet',
-      name: 'Jet Lee',
-      },
-      {
-        id: 'bruce',
-        name: 'lee'
-      }
-    ]
-  },
-  {
-    id: 'two',
-    title: '36 chamber',
-    releaseDate: new Date("09-13-1985"),
-    rating: 5,
-    actors: [{
-      id: 'liukang',
-      name: 'Liu Kang',
-    }]
+  type Subscription {
+    movieAdded: Movie
   }
-];
+`
+// const actors = [{
+//   id: 'liukang',
+//   name: 'Liu Kang',
+// }];
+
+// const movies = [
+//   {
+//     id: 'one',
+//     title: 'five deadly venoms',
+//     releaseDate: new Date("10-12-1983"),
+//     rating: 5,
+//     actors: [
+//       {
+//       id: 'jet',
+//       name: 'Jet Lee',
+//       },
+//       {
+//         id: 'bruce',
+//         name: 'lee'
+//       }
+//     ]
+//   },
+//   {
+//     id: 'two',
+//     title: '36 chamber',
+//     releaseDate: new Date("09-13-1985"),
+//     rating: 5,
+//     actors: [{
+//       id: 'liukang',
+//       name: 'Liu Kang',
+//     }]
+//   }
+// ];
+
+const pubsub = new PubSub();
+const MOVIE_ADDED = 'MOVIE_ADDED';
 
 const resolvers = {
+  Subscription: {
+    movieAdded: {
+      subscribe: () => pubsub.asyncIterator([MOVIE_ADDED])
+    }
+  },
+
   Query: {
     movies: async() => {
       try {
@@ -139,10 +152,13 @@ const resolvers = {
       const newMovie = await MovieModel.create({
         ...movie
       })
+      /*
+        Subscription is useful for chat app, I guess it is similar as web socket
+      */
+      pubsub.publish(MOVIE_ADDED, { movieAdded: newMovie });
       const allMovies = await MovieModel.find();
       return allMovies;
       // Return dat as expected in the schema
-      return [newMovie];
     }
   },
 
